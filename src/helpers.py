@@ -1,5 +1,6 @@
 import asyncio
 import discord
+import logging
 from functools import partial
 from googletrans import Translator
 
@@ -8,6 +9,7 @@ from googletrans import Translator
 # ---------------------------------------------------------------------------
 async def translate_and_send(
         translator: Translator,
+        log: logging.Logger,
         message: discord.Message,
         channel_to_send_id: int,
         dest_lang: str) -> None:
@@ -28,9 +30,9 @@ async def translate_and_send(
         )
         embed.set_author(
             name = message.author.display_name,
-            icon_url = message.author.avatar.url
+            icon_url = message.author.display_avatar.url
         )
         await channel_to_send.send(embed = embed)
 
     except Exception as exc:
-        print(f"[error] `translate_and_send` failed (dest_lang: {dest_lang}) -> {exc}")
+        log.erro(f"`translate_and_send` failed (dest_lang: {dest_lang}) -> {exc}")
