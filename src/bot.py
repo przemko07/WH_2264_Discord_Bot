@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import ui, ButtonStyle, Embed, Colour
 from dotenv import load_dotenv
 from googletrans import Translator
-import helpers
+from helpers import *
 
 # ---------- const -----------
 
@@ -33,12 +33,18 @@ LISTEN_CH_ID = [ # Text channel where bot is listening and will be translating a
     1373665186178928702, # russian
     1373665158353780866, # polish
     1373665214565847303, # korean
+    1373678224546074675, # turkey
+    1373678201867337739, # german
+    1373678238404186262, # arabic
 ]
 TRANSLATE_CH_ID = { # Text channel where bot will translate message into
     1373665044663107676: "en", # english
     1373665186178928702: "ru", # russian
     1373665158353780866: "pl", # polish
     1373665214565847303: "ko", # korean
+    1373678224546074675: "tr", # turkey
+    1373678201867337739: "de", # german
+    1373678238404186262: "ar", # arabic
 }
 
 # ---------- config ----------
@@ -96,51 +102,17 @@ async def on_message(msg: discord.Message):
         print(f"NOT translating on channel ID {msg.channel.id}")
         return
 
-    # loop over all channels I need to translate into, and translate into them
-    for translate_channel_id in TRANSLATE_CH_ID:
-        translate_lang = TRANSLATE_CH_ID[translate_channel_id]
-        try:
-            print(f"[info] translating user message into {translate_lang}")
+    # spawn a task for every language/channel pair
+    tasks = [
+        asyncio.create_task(
+            translate_and_send(translator, msg, ch_id, lang)
+        )
+        for ch_id, lang in TRANSLATE_CH_ID.items()
+    ]
 
-            # run translation (googletrans auto-detects src language)
-            trg = await translator.translate(msg.content, dest=translate_lang)
-            print(f"[info] translated succesfully from language {trg.src}")
-
-            # avoid echoing if we are trying to translate to the same language
-            if trg.src == translate_lang:
-                continue
-            # avoid echoing if the message translate to the same thing (for example: HAHAHAHA)
-            if trg.text == msg.content:
-                continue
-
-            channel = msg.guild.get_channel(translate_channel_id)
-
-
-            # 4) send back the translated text
-            #await channel.send(
-            #    f"*[{trg.src.upper()} → {translate_lang.upper()}]* [🔗]({msg.jump_url}) {trg.text}"
-            #)
-
-            embed = discord.Embed(
-                #title = "jump to original",
-                #description = f"*[{trg.src.upper()} → {translate_lang}]* {trg.text}",
-                #description = f"[🔗]({msg.jump_url}) *[{trg.src.upper()} → {translate_lang.upper()}]*  {trg.text}",
-                description = f"[🔗]({msg.jump_url}) {trg.text}",
-                color = discord.Colour.blurple(),
-                #url = msg.jump_url
-            )
-            # XXX: I dont like thumbnail, it makes whole message taller and not looking good
-            #embed.set_thumbnail(url=msg.author.avatar.url)
-            embed.set_author(
-                name = msg.author.display_name,
-                icon_url = msg.author.avatar.url
-            )
-
-            await channel.send(embed = embed)
-        except Exception as exc:
-            # transient googletrans failures are common—log & bail
-            print(f"[error] Translation error: {exc}")
-            continue
+    # wait for *all* of them before we exit the handler
+    # (collect exceptions inside translate_and_send, so gather won’t raise)
+    await asyncio.gather(*tasks)
 
     # hand off to command processor so prefix/slash cmds keep working
     await bot.process_commands(msg)
