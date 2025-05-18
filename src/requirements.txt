@@ -1,0 +1,9 @@
+requirements.txt
+─────────────────
+discord.py
+python-dotenv
+googletrans==4.0.2
+aiosqlite
+PyYAML
+watchfiles
+pydantic
