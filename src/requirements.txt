@@ -1,5 +1,3 @@
-requirements.txt
-─────────────────
 discord.py
 python-dotenv
 googletrans==4.0.2
