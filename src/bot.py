@@ -1,4 +1,5 @@
 import os
+import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -50,7 +51,11 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     for role in added_roles:
         if role.id == NEW_COMMER_ROLE_ID:
             await log_channel.send(f"✅ {after.mention} just received **{role.name}**")
-            await welcome_channel.send(f"{after.mention} hello new-commer on #2264 state discord!")
+            await welcome_channel.send(
+                f"hello everyone, we have {after.mention} on #2264 state discord!\r\n" + # 
+                f"I will help you choose discord alliance role and discord nickname. This will help everyone understand who yuu are.\r\n" +
+                f"[alliance role]: click on alliance icon under this message.\r\n" +
+                f"[nickname]: send message on discord chat `/nick \"YOUR IN GAME NICK\"`")
             def receive_reply(msg: discord.Message) -> bool:
                 return (
                     msg.author.id == after.id
@@ -60,7 +65,7 @@ async def on_member_update(before: discord.Member, after: discord.Member):
             
             try:
                 await bot.wait_for("message", check=receive_reply, timeout=5)
-            except TimeoutError:
+            except asyncio.exceptions.TimeoutError:
                 # user never replied — optional: handle or ignore
                 None
             await welcome_channel.send(":)")

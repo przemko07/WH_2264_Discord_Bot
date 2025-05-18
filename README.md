@@ -23,10 +23,15 @@ OAuth2:
 
   - Send Messages
   - Read Message History
+  - Manage Nicknames
 
 - Generated URL (might change depending on permissions):
 
-  https://discord.com/oauth2/authorize?client_id=1373285218928164864&permissions=67584&integration_type=0&scope=applications.commands+bot
+  https://discord.com/oauth2/authorize?client_id=1373285218928164864&permissions=134285312&integration_type=0&scope=applications.commands+bot
+
+
+
+
 
 
 
