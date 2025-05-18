@@ -8,6 +8,7 @@ import helpers
 
 NEW_COMMER_ROLE_ID = 1373321252160409610    # Role ID for new commers (receiving this role triggers functions)
 BOT_LOG_CH_ID = 1373323014535381034         # Text channel for writing bot logs
+WELCOME_CH_ID = 1373323014535381034         # Text channel for welcoming people
 
 
 
@@ -31,10 +32,16 @@ async def on_ready():
 @bot.event
 async def on_member_update(before: discord.Member, after: discord.Member):
     print("[info] called `on_member_update`")
+
     log_channel = after.guild.get_channel(BOT_LOG_CH_ID)
     if log_channel == None:
-        raise RuntimeError("channel == None")
+        raise RuntimeError("channel == None")  # TODO: XXX: change exceptions to errors (if it crashes my bot)
     await log_channel.send("[info] called `on_member_update`")
+
+    welcome_channel = after.guild.get_channel(WELCOME_CH_ID)
+    if welcome_channel == None:
+        raise RuntimeError("channel == None")  # TODO: XXX: change exceptions to errors (if it crashes my bot)
+    
 
     # Roles are *lists* that preserve hierarchy order.
     added_roles   = [r for r in after.roles if r not in before.roles]
@@ -43,6 +50,21 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     for role in added_roles:
         if role.id == NEW_COMMER_ROLE_ID:
             await log_channel.send(f"✅ {after.mention} just received **{role.name}**")
+            await welcome_channel.send(f"{after.mention} hello new-commer on #2264 state discord!")
+            def receive_reply(msg: discord.Message) -> bool:
+                return (
+                    msg.author.id == after.id
+                    and msg.channel.id == WELCOME_CH_ID
+                    and msg.content.lower().strip() == "hello"
+                )
+            
+            try:
+                await bot.wait_for("message", check=receive_reply, timeout=5)
+            except TimeoutError:
+                # user never replied — optional: handle or ignore
+                None
+            await welcome_channel.send(":)")
+            
 
 @bot.command()
 async def ping(ctx: commands.Context):
