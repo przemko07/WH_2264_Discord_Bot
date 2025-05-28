@@ -36,6 +36,8 @@ LISTEN_CH_ID = [ # Text channel where bot is listening and will be translating a
     1373678224546074675, # turkey
     1373678201867337739, # german
     1373678238404186262, # arabic
+    1377198864741699654, # chineese
+    1377199517631516722, # spanish
 ]
 TRANSLATE_CH_ID = { # Text channel where bot will translate message into
     1373665044663107676: "en", # english
@@ -45,6 +47,8 @@ TRANSLATE_CH_ID = { # Text channel where bot will translate message into
     1373678224546074675: "tr", # turkey
     1373678201867337739: "de", # german
     1373678238404186262: "ar", # arabic
+    1377198864741699654: "zk", # chineese
+    1377199517631516722: "es", # spanish
 }
 
 # ---------- config ----------
