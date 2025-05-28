@@ -1,17 +1,55 @@
 import asyncio
 import discord
+from discord.ext import commands
 from datetime import datetime
 from functools import partial
 from googletrans import Translator
 
-# ---------------------------------------------------------------------------
-# 1) helper that does ONE translation + send
-# ---------------------------------------------------------------------------
+#  alliance_key (str) -> list[tuple[datetime, coroutine]]
+#  we store the *send coroutine* so the writer can just await it later.
+_MESSAGE_BUFFER: dict[str, list[tuple[datetime, asyncio.Future]]] = defaultdict(list)
+_BUFFER_LOCK = asyncio.Lock()
+
+def run_writer_loop(bot: commands.Bot):
+    bot.loop.create_task(_writer_loop())     # ← starts background flusher
+
+async def queue_message (alliance: str, coro: asyncio.Future) -> None:
+    """
+    Queue message onto message list
+    alliance  - key (e.g. language code, channel name, your 'alliance')
+    coro      - coroutine that, when awaited, sends the Discord message
+    """
+
+    global FLUSH_INTERVAL
+    global _BUFFER_LOCK
+    global _MESSAGE_BUFFER
+
+    async with _BUFFER_LOCK:
+        _MESSAGE_BUFFER[alliance].append((datetime.now(), coro))
+
 async def translate_and_send(
-        translator: Translator,
         message: discord.Message,
         channel_to_send_id: int,
         dest_lang: str) -> None:
+    """
+    Translates a Discord message and sends it to the specified channel.
+
+    Parameters
+    ----------
+    message : discord.Message
+        The Discord message to be translated.
+    channel_to_send_id : int
+        The ID of the channel where the translated message will be sent.
+    dest_lang : str
+        The target language code (e.g., 'en', 'es', 'fr').
+
+    Returns
+    -------
+    None
+        This function does not return a value.
+    """
+
+    global translator
     try:
         channel_to_send = message.guild.get_channel(channel_to_send_id)
         if channel_to_send is None:
@@ -37,19 +75,10 @@ async def translate_and_send(
         print(f"[error] `translate_and_send` failed (dest_lang: {dest_lang}) -> {exc}")
 
 
-async def queue_message(alliance: str, coro: asyncio.Future) -> None:
-    global FLUSH_INTERVAL
-    global _BUFFER_LOCK
-    global _MESSAGE_BUFFER
-    """
-    alliance  - key (e.g. language code, channel name, your 'alliance')
-    coro      - coroutine that, when awaited, sends the Discord message
-    """
-    async with _BUFFER_LOCK:
-        _MESSAGE_BUFFER[alliance].append((datetime.now(), coro))
 
 
-async def writer_loop():
+
+async def _writer_loop():
     """
     Periodically flush the buffered messages in timestamp order,
     per alliance bucket.

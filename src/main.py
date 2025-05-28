@@ -1,6 +1,8 @@
 import os
 import asyncio
 import discord
+from datetime import datetime
+from collections import defaultdict
 from discord.ext import commands
 from discord import ui, ButtonStyle, Embed, Colour
 from dotenv import load_dotenv
@@ -48,8 +50,10 @@ TRANSLATE_CH_ID = { # Text channel where bot will translate message into
 }
 
 # ---------- config ----------
+FLUSH_INTERVAL = 0.5                    # How often we flush messages after translation
+
 load_dotenv()
-TOKEN   = os.getenv("DISCORD_TOKEN")
+DISCORD_TOKEN   = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True          # needed for prefix commands
@@ -105,6 +109,7 @@ async def on_message(msg: discord.Message):
     # spawn a task for every language/channel pair
     tasks = [
         asyncio.create_task(
+            queue_message(ch_id, 
             translate_and_send(translator, msg, ch_id, lang)
         )
         for ch_id, lang in TRANSLATE_CH_ID.items()
@@ -132,7 +137,8 @@ async def on2264(interaction: discord.Interaction):
 @bot.event
 async def setup_hook():
     print("[info] called `setup_hook`")
+    bot.loop.create_task(writer_loop())     # start background thread writer
     await bot.tree.sync()  # global sync; use guild-specific in dev for instant sync
 
 # ---------- start bot ----------
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)
