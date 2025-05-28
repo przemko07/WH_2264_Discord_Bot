@@ -10,7 +10,8 @@ async def translate_and_send(
         translator: Translator,
         message: discord.Message,
         channel_to_send_id: int,
-        dest_lang: str) -> None:
+        dest_lang: str,
+) -> None:
     try:
         channel_to_send = message.guild.get_channel(channel_to_send_id)
         if channel_to_send is None:
@@ -24,11 +25,12 @@ async def translate_and_send(
 
         embed = discord.Embed(
             description = f"[🔗]({message.jump_url}) {trg.text}",
-            color = discord.Colour.blurple()
+            color = discord.Colour.blurple(),
+            timestamp = message.created_at,
         )
         embed.set_author(
             name = message.author.display_name,
-            icon_url = message.author.avatar.url
+            icon_url = message.author.display_avatar.url
         )
         await channel_to_send.send(embed = embed)
 
