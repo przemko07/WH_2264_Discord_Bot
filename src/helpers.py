@@ -18,7 +18,7 @@ async def translate_and_send(
             return
 
         trg = await translator.translate(message.content, dest=dest_lang)
-        print(f"tried to translate message \"{message.content}\", detected language: \"{trg.src}\"") # TODO: REMOVE: Debug code
+
         # skip useless translation (same message or same language)
         if trg.src == dest_lang or trg.text == message.content:
             return
