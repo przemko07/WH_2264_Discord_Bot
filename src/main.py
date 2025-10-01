@@ -60,6 +60,7 @@ intents.message_content = True          # needed for prefix commands
 intents.members = True                  # lets us receive member-update events
 
 translator = Translator()               # google translator for multi languages
+print_available_languages()
 
 # ---------- prefix commands ----------
 bot = commands.Bot(command_prefix="!", intents=intents)

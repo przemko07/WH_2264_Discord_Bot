@@ -2,6 +2,7 @@ import asyncio
 import discord
 from functools import partial
 from googletrans import Translator
+from googletrans import LANGUAGES
 
 # ---------------------------------------------------------------------------
 # 1) helper that does ONE translation + send
@@ -36,3 +37,12 @@ async def translate_and_send(
 
     except Exception as exc:
         print(f"[error] `translate_and_send` failed (dest_lang: {dest_lang}) -> {exc}")
+
+# ---------------------------------------------------------------------------
+# 1) helper that prints all available Google Languages on screen
+# ---------------------------------------------------------------------------
+def print_available_languages() -> None:
+    total = len(LANGUAGES)
+    print(f"Available languages (count: {total})\n")
+    for idx, (code, name) in enumerate(LANGUAGES.items(), start=1):
+        print(f"{idx}/{total}: {code:>6} : {name}")
